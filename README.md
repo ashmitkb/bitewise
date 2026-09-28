@@ -23,7 +23,8 @@ With the default `qwen3.5:9b` model on a laptop GPU, a typed meal takes about 3�
 - **Today view:** a calorie ring, macro bars, water glasses and meals grouped by breakfast, lunch, dinner and snacks. Tap an entry to edit or delete it.
 - **Progress:** calories per day against your target (7, 30 or 90 days), average macros, a weight log with a trend line, and a logging streak. Logging a new weight updates your targets.
 - **AI coach chat** that streams its answers and knows your targets, today's log, the last 7 days and your weight trend.
-- **Works on your phone** over your home Wi-Fi, so you can photograph meals with the phone camera.
+- **Works on your phone,** at home over Wi-Fi or from anywhere with Tailscale, so you can photograph meals with the phone camera.
+- **Profiles with a PIN,** so a friend can use your computer's Bitewise too, with his own targets, log and coach.
 - Light and dark mode, keyboard accessible, and colorblind-safe chart colors.
 
 ## Requirements
@@ -63,7 +64,33 @@ npm start
 The phone is only a screen: the AI runs on your computer's graphics card and your log is saved on the computer, so the phone and the computer always show the same data. The computer has to be on and awake.
 
 - **The address can change** when your router hands out a new one. Settings always shows the current one. If it changes while `npm run dev` is running, restart it.
-- **There's no login.** Anyone on the same Wi-Fi can open the app while it's running. That's fine at home, but stop it on shared networks such as college or café Wi-Fi.
+- **Anyone on the same Wi-Fi can reach the app** while it's running. Give your profile a PIN (Settings) and don't leave the app running on shared networks such as college or café Wi-Fi.
+
+### From anywhere, with Tailscale
+
+[Tailscale](https://tailscale.com) (free for personal use) connects your phone and your computer privately over the internet, so Bitewise works on mobile data too. Nobody outside your own Tailscale devices can reach it.
+
+1. Install Tailscale on the computer and sign in (Google, Microsoft or GitHub account).
+2. Install the Tailscale app on your phone and sign in with the **same account**.
+3. On the computer, run this once (Tailscale may ask you to click "Enable HTTPS" the first time):
+
+   ```bash
+   tailscale serve --bg 3000
+   ```
+
+4. On the phone, open the address from **Settings → From anywhere** (like `https://my-pc.tail1234.ts.net`).
+
+This keeps working after restarts. To stop it, run `tailscale serve reset`. Using `tailscale serve` also avoids opening Windows Firewall, and gives a proper `https://` address, so the phone can install Bitewise to the home screen like an app.
+
+### Sharing with a friend
+
+Everyone gets a **profile** with their own targets, food log, weigh-ins and coach chat. Once there's more than one profile, each needs a PIN.
+
+1. In the [Tailscale admin console](https://login.tailscale.com/admin/machines), open your computer's **⋯** menu → **Share…**, and send your friend the invite link.
+2. Your friend installs Tailscale on his phone, signs in with **his own** account and opens the invite. He can reach only this computer, nothing else of yours.
+3. He opens the same `https://…ts.net` address, taps **Add a profile**, and picks a name and PIN.
+
+Good to know: your computer has to be on for him to use it, his AI requests use your graphics card, and his log is stored on your computer in `data/users/`. If he'd rather be independent, he can run his own copy: clone this repo, install Ollama and follow **Run it** above.
 
 ## How the AI part works
 
@@ -78,7 +105,13 @@ The phone is only a screen: the AI runs on your computer's graphics card and you
 
 ## Your data
 
-Everything is stored in the `data/` folder: `diet.json` for your log and `photos/` for meal thumbnails. The folder is ignored by git. **Settings → Your data** lets you download a backup, restore from one, or delete everything.
+Everything is stored in the `data/` folder, which git ignores:
+
+- `people.json`: the profiles (PINs are stored as salted hashes, never the digits) and the shared AI model settings
+- `users/<id>/data.json` and `users/<id>/photos/`: each person's log and meal thumbnails
+- `secret.key`: signs the sign-in cookies
+
+**Settings → Your data** lets you download a backup of your profile, restore from one, or delete your profile. The first version of the app kept everything in `data/diet.json`; it's moved into a profile automatically, and the original is kept as `diet.v1-backup.json`.
 
 ## Configuration (optional)
 

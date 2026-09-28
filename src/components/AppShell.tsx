@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChartIcon, GearIcon, HomeIcon, Logo, SparkIcon } from "./icons";
 import { Onboarding } from "./Onboarding";
+import { Avatar, ProfilePicker } from "./ProfilePicker";
 import { useStore } from "./StoreProvider";
 import { Toaster } from "./Toaster";
 
@@ -32,6 +33,7 @@ export function AppShell({ children }: { children: React.ReactNode }) {
         </button>
       </Centered>
     );
+  else if (status === "signed-out") content = <ProfilePicker />;
   else if (!state?.profile) content = <Onboarding />;
 
   return (
@@ -42,6 +44,12 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             <Logo />
             Bitewise
           </Link>
+          {ready && state && state.peopleCount > 1 && (
+            <Link href="/settings" className="order-last flex items-center gap-2 rounded-full py-1 pl-1 pr-3 text-sm font-medium hover:bg-surface-2 sm:order-none sm:ml-auto">
+              <Avatar name={state.me.name} size={30} />
+              <span className="max-w-28 truncate">{state.me.name}</span>
+            </Link>
+          )}
           {ready && (
             <nav aria-label="Main" className="hidden sm:block">
               <ul className="flex gap-1">

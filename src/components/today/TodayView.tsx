@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef, useState } from "react";
 import { errorText, toast } from "@/lib/client";
 import { addDays, dayLabel, longDate, mealForNow, todayISO } from "@/lib/dates";
@@ -37,6 +38,16 @@ export function TodayView() {
         </div>
 
         <AiOfflineBanner />
+
+        {state.peopleCount > 1 && !state.me.hasPin && (
+          <Link href="/settings" className="flex items-center gap-3 rounded-2xl border border-serious/50 bg-serious/10 p-4 text-sm hover:bg-serious/15">
+            <AlertIcon className="shrink-0 text-serious" />
+            <span className="flex-1">
+              <span className="font-semibold">Set a PIN.</span> Other people using this app can open your profile until you do.
+            </span>
+            <ChevronRightIcon size={18} />
+          </Link>
+        )}
 
         <section aria-label="Daily summary" className="card grid gap-6 p-5 sm:grid-cols-[auto_1fr] sm:items-center sm:gap-10 sm:p-6">
           <div className="flex flex-col items-center gap-3">

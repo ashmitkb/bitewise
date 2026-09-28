@@ -66,14 +66,38 @@ export interface Settings {
   visionModel: string;
 }
 
-export interface AppState {
-  version: 1;
+/** One person's own data: body profile, food log, weigh-ins, water. */
+export interface UserData {
   profile: Profile | null;
-  settings: Settings;
   entries: FoodEntry[];
   weights: WeightEntry[];
   /** date -> glasses */
   water: Record<string, number>;
+}
+
+/** Someone who uses this app. Each person has their own UserData, optionally behind a PIN. */
+export interface Person {
+  id: string;
+  name: string;
+  pin: { salt: string; hash: string } | null;
+  createdAt: string;
+}
+
+/** What the profile picker may show before anyone has signed in. */
+export interface PersonSummary {
+  id: string;
+  name: string;
+  hasPin: boolean;
+}
+
+/** Everything the signed-in person's browser gets. */
+export interface AppState extends UserData {
+  version: 2;
+  me: PersonSummary;
+  /** how many profiles exist on this computer */
+  peopleCount: number;
+  /** shared by everyone: which AI models this computer uses */
+  settings: Settings;
 }
 
 /** One food the AI found, editable before saving. */
@@ -111,7 +135,10 @@ export interface AiStatus {
   loaded: string[];
   textModel: string | null;
   visionModel: string | null;
+  /** same Wi-Fi */
   lanUrls: string[];
+  /** from anywhere, through Tailscale */
+  tailscaleUrls: string[];
 }
 
 export type AnalyzeEvent =

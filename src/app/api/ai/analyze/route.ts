@@ -1,4 +1,5 @@
-import { readState } from "@/lib/db";
+import { requirePerson } from "@/lib/auth";
+import { readPeople } from "@/lib/db";
 import { HttpError, errorMessage, readJson, route, str } from "@/lib/http";
 import { sanitizePer100g } from "@/lib/nutrition";
 import { chatStream, isLoaded, resolveModels } from "@/lib/ollama";
@@ -53,6 +54,7 @@ function toDrafts(raw: string): FoodDraft[] {
  * Streams newline-delimited JSON events so the UI can show progress (see AnalyzeEvent).
  */
 export const POST = route(async (req: Request) => {
+  await requirePerson(req);
   const b = await readJson(req);
   const text = str(b.text, 1000);
   let image = "";
@@ -64,7 +66,7 @@ export const POST = route(async (req: Request) => {
   }
   if (!text && !image) throw new HttpError("Describe what you ate or add a photo.");
 
-  const models = await resolveModels((await readState()).settings);
+  const models = await resolveModels((await readPeople()).settings);
   const model = image ? models.vision : models.text;
   if (!model) {
     throw new HttpError(

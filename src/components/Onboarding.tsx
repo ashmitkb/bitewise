@@ -7,7 +7,7 @@ import { ProfileForm } from "./ProfileForm";
 import { useStore } from "./StoreProvider";
 
 export function Onboarding() {
-  const { saveProfile } = useStore();
+  const { saveProfile, state } = useStore();
 
   return (
     <div className="mx-auto max-w-xl">
@@ -34,6 +34,7 @@ export function Onboarding() {
       <div className="card p-5 sm:p-6">
         <h2 className="mb-4 text-lg font-semibold">First, a bit about you</h2>
         <ProfileForm
+          defaultName={state?.me.name}
           submitLabel="Start tracking"
           onSubmit={async (profile) => {
             await saveProfile(profile, todayISO());

@@ -1,10 +1,11 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { api, errorText } from "@/lib/client";
+import { ApiError, api, errorText } from "@/lib/client";
 import type { AppState, FoodEntry, MealType, NewEntryItem, ProfileInput, Settings } from "@/lib/types";
 
-type Status = "loading" | "ready" | "error";
+/** "signed-out" = show the "Who's using Bitewise?" screen */
+type Status = "loading" | "ready" | "error" | "signed-out";
 
 export interface NewEntries {
   date: string;
@@ -21,6 +22,13 @@ interface Store {
   error: string | null;
   state: AppState | null;
   reload: () => Promise<void>;
+  // profiles
+  signIn: (personId: string, pin?: string) => Promise<void>;
+  createPerson: (name: string, pin?: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  setPin: (currentPin: string | undefined, pin: string | null) => Promise<void>;
+  deleteMe: () => Promise<void>;
+  // my data
   saveProfile: (profile: ProfileInput, date: string) => Promise<void>;
   addEntries: (input: NewEntries) => Promise<void>;
   updateEntry: (id: string, patch: EntryPatch) => Promise<void>;
@@ -30,7 +38,6 @@ interface Store {
   setWater: (date: string, glasses: number) => Promise<void>;
   saveSettings: (settings: Partial<Settings>) => Promise<void>;
   importBackup: (data: unknown) => Promise<void>;
-  resetAll: () => Promise<void>;
 }
 
 const StoreContext = createContext<Store | null>(null);
@@ -39,6 +46,11 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = useState<AppState | null>(null);
   const [status, setStatus] = useState<Status>("loading");
   const [error, setError] = useState<string | null>(null);
+
+  const signedOut = useCallback(() => {
+    setState(null);
+    setStatus("signed-out");
+  }, []);
 
   const load = useCallback(
     () =>
@@ -49,11 +61,12 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
           setError(null);
         },
         (err) => {
+          if (err instanceof ApiError && err.status === 401) return signedOut();
           setError(errorText(err));
           setStatus("error");
         },
       ),
-    [],
+    [signedOut],
   );
 
   useEffect(() => {
@@ -65,10 +78,20 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
     await load();
   }, [load]);
 
-  // Every mutation returns the full saved state, so the UI always matches the file on disk.
-  const mutate = useCallback(async (path: string, method: string, body?: unknown) => {
-    setState(await api<AppState>(path, { method, body }));
-  }, []);
+  // Every change returns the full saved state, so the UI always matches the files on disk.
+  const mutate = useCallback(
+    async (path: string, method: string, body?: unknown) => {
+      try {
+        setState(await api<AppState>(path, { method, body }));
+        setStatus("ready");
+      } catch (err) {
+        // signed out elsewhere, or the profile was deleted
+        if (err instanceof ApiError && err.status === 401 && path !== "/api/session" && path !== "/api/pin") signedOut();
+        throw err;
+      }
+    },
+    [signedOut],
+  );
 
   const store = useMemo<Store>(
     () => ({
@@ -76,6 +99,17 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       error,
       state,
       reload,
+      signIn: (personId, pin) => mutate("/api/session", "POST", { id: personId, pin }),
+      createPerson: (name, pin) => mutate("/api/people", "POST", { name, pin }),
+      signOut: async () => {
+        await api("/api/session", { method: "DELETE" });
+        signedOut();
+      },
+      setPin: (currentPin, pin) => mutate("/api/pin", "PUT", { currentPin, pin }),
+      deleteMe: async () => {
+        await api("/api/backup", { method: "DELETE" });
+        signedOut();
+      },
       saveProfile: (profile, date) => mutate("/api/profile", "PUT", { ...profile, date }),
       addEntries: (input) => mutate("/api/entries", "POST", input),
       updateEntry: (id, patch) => mutate(`/api/entries/${id}`, "PATCH", patch),
@@ -89,9 +123,8 @@ export function StoreProvider({ children }: { children: React.ReactNode }) {
       },
       saveSettings: (settings) => mutate("/api/settings", "PUT", settings),
       importBackup: (data) => mutate("/api/backup", "POST", data),
-      resetAll: () => mutate("/api/backup", "DELETE"),
     }),
-    [status, error, state, reload, mutate],
+    [status, error, state, reload, mutate, signedOut],
   );
 
   return <StoreContext.Provider value={store}>{children}</StoreContext.Provider>;

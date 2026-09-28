@@ -15,7 +15,8 @@ interface ChatMessage {
   error?: string;
 }
 
-const STORAGE_KEY = "bitewise-coach-chat";
+/** Chats are kept per profile, so people sharing a phone don't see each other's. */
+const storageKey = (personId: string) => `bitewise-coach-chat:${personId}`;
 
 const SUGGESTIONS = [
   "How am I doing today?",
@@ -26,8 +27,9 @@ const SUGGESTIONS = [
 
 export function CoachView() {
   const state = useAppState();
+  const key = storageKey(state.me.id);
   const { status } = useAiStatus();
-  const [messages, setMessages] = useState<ChatMessage[]>(() => readLocal<ChatMessage[]>(STORAGE_KEY, []));
+  const [messages, setMessages] = useState<ChatMessage[]>(() => readLocal<ChatMessage[]>(key, []));
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadingNote, setLoadingNote] = useState<string | null>(null);
@@ -40,8 +42,8 @@ export function CoachView() {
   }, []);
 
   useEffect(() => {
-    if (!busy) writeLocal(STORAGE_KEY, messages.slice(-40));
-  }, [messages, busy]);
+    if (!busy) writeLocal(key, messages.slice(-40));
+  }, [messages, busy, key]);
 
   useEffect(() => {
     endRef.current?.scrollIntoView({ block: "end" });
@@ -109,7 +111,7 @@ export function CoachView() {
             disabled={busy}
             onClick={() => {
               setMessages([]);
-              writeLocal(STORAGE_KEY, []);
+              writeLocal(key, []);
             }}
           >
             New chat

@@ -1,4 +1,5 @@
-import { readState } from "@/lib/db";
+import { requirePerson } from "@/lib/auth";
+import { getState } from "@/lib/db";
 import { HttpError, errorMessage, isoDate, readJson, route, str } from "@/lib/http";
 import { chatStream, isLoaded, resolveModels, type ChatMessage } from "@/lib/ollama";
 import { coachSystemPrompt } from "@/lib/prompts";
@@ -29,10 +30,11 @@ function parseHistory(v: unknown): ChatMessage[] {
 
 /** Chat with the coach. Streams newline-delimited JSON events (see CoachEvent). */
 export const POST = route(async (req: Request) => {
+  const id = await requirePerson(req);
   const b = await readJson(req);
   const date = isoDate(b.date);
   const history = parseHistory(b.messages);
-  const state = await readState();
+  const state = await getState(id);
   if (!state.profile) throw new HttpError("Set up your profile first.");
 
   const { text: model } = await resolveModels(state.settings);

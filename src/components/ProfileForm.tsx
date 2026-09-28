@@ -7,6 +7,8 @@ import type { Activity, Goal, Profile, ProfileInput, Sex, Targets } from "@/lib/
 
 interface Props {
   initial?: Profile | null;
+  /** prefill for the name field when there's no profile yet */
+  defaultName?: string;
   submitLabel: string;
   onSubmit: (profile: ProfileInput) => Promise<void>;
 }
@@ -14,8 +16,8 @@ interface Props {
 const toNum = (s: string) => (s.trim() === "" ? NaN : Number(s));
 const inRange = (n: number, min: number, max: number) => Number.isFinite(n) && n >= min && n <= max;
 
-export function ProfileForm({ initial, submitLabel, onSubmit }: Props) {
-  const [name, setName] = useState(initial?.name ?? "");
+export function ProfileForm({ initial, defaultName = "", submitLabel, onSubmit }: Props) {
+  const [name, setName] = useState(initial?.name || defaultName);
   const [sex, setSex] = useState<Sex | "">(initial?.sex ?? "");
   const [age, setAge] = useState(initial ? String(initial.age) : "");
   const [height, setHeight] = useState(initial ? String(initial.heightCm) : "");

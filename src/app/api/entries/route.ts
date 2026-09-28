@@ -1,4 +1,5 @@
-import { newId, savePhoto, updateState } from "@/lib/db";
+import { requirePerson } from "@/lib/auth";
+import { newId, savePhoto, updateAndGetState } from "@/lib/db";
 import { HttpError, isoDate, json, mealType, nutrients, oneOf, optionalNum, readJson, route, str } from "@/lib/http";
 import { roundNutrients } from "@/lib/nutrition";
 import type { FoodEntry, NewEntryItem } from "@/lib/types";
@@ -21,6 +22,7 @@ function parseItem(v: unknown): NewEntryItem {
 
 /** Add one or more foods to a meal. */
 export const POST = route(async (req: Request) => {
+  const id = await requirePerson(req);
   const b = await readJson(req);
   const date = isoDate(b.date);
   const meal = mealType(b.meal);
@@ -29,13 +31,13 @@ export const POST = route(async (req: Request) => {
   }
   const items = b.items.map(parseItem);
   const photoId =
-    typeof b.photo === "string" && b.photo && items.some((i) => i.withPhoto) ? await savePhoto(b.photo) : null;
+    typeof b.photo === "string" && b.photo && items.some((i) => i.withPhoto) ? await savePhoto(id, b.photo) : null;
   const createdAt = new Date().toISOString();
 
-  const state = await updateState((s) => {
+  const state = await updateAndGetState(id, (data) => {
     for (const { withPhoto, ...item } of items) {
       const entry: FoodEntry = { id: newId(), date, meal, ...item, photoId: withPhoto ? photoId : null, createdAt };
-      s.entries.push(entry);
+      data.entries.push(entry);
     }
   });
   return json(state);

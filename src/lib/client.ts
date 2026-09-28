@@ -1,5 +1,15 @@
 "use client";
 
+/** An API error that keeps the HTTP status (401 means "choose your profile"). */
+export class ApiError extends Error {
+  constructor(
+    message: string,
+    public status: number,
+  ) {
+    super(message);
+  }
+}
+
 /** JSON fetch helper for our own API. Throws the server's error message on failure. */
 export async function api<T>(path: string, options: { method?: string; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
   const res = await fetch(path, {
@@ -10,7 +20,7 @@ export async function api<T>(path: string, options: { method?: string; body?: un
     signal: options.signal,
   });
   const data = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error((data as { error?: string }).error ?? `Request failed (${res.status})`);
+  if (!res.ok) throw new ApiError((data as { error?: string }).error ?? `Request failed (${res.status})`, res.status);
   return data as T;
 }
 

@@ -1,13 +1,15 @@
-import { deletePhoto, updateState } from "@/lib/db";
+import { requirePerson } from "@/lib/auth";
+import { deletePhoto, getState, updateAndGetState, updateUserData } from "@/lib/db";
 import { HttpError, isoDate, json, mealType, nutrients, optionalNum, readJson, route, str } from "@/lib/http";
 import { roundNutrients } from "@/lib/nutrition";
 
 export const PATCH = route(async (req: Request, ctx: RouteContext<"/api/entries/[id]">) => {
+  const personId = await requirePerson(req);
   const { id } = await ctx.params;
   const b = await readJson(req);
 
-  const state = await updateState((s) => {
-    const entry = s.entries.find((e) => e.id === id);
+  const state = await updateAndGetState(personId, (data) => {
+    const entry = data.entries.find((e) => e.id === id);
     if (!entry) throw new HttpError("That entry no longer exists.", 404);
     if (b.name !== undefined) {
       const name = str(b.name, 80);
@@ -27,17 +29,18 @@ export const PATCH = route(async (req: Request, ctx: RouteContext<"/api/entries/
   return json(state);
 });
 
-export const DELETE = route(async (_req: Request, ctx: RouteContext<"/api/entries/[id]">) => {
+export const DELETE = route(async (req: Request, ctx: RouteContext<"/api/entries/[id]">) => {
+  const personId = await requirePerson(req);
   const { id } = await ctx.params;
   const removed: { photoId: string | null } = { photoId: null };
 
-  const state = await updateState((s) => {
-    const entry = s.entries.find((e) => e.id === id);
+  await updateUserData(personId, (data) => {
+    const entry = data.entries.find((e) => e.id === id);
     if (!entry) throw new HttpError("That entry no longer exists.", 404);
-    s.entries = s.entries.filter((e) => e.id !== id);
+    data.entries = data.entries.filter((e) => e.id !== id);
     // A photo can be shared by several items from the same meal; drop it with the last one.
-    if (entry.photoId && !s.entries.some((e) => e.photoId === entry.photoId)) removed.photoId = entry.photoId;
+    if (entry.photoId && !data.entries.some((e) => e.photoId === entry.photoId)) removed.photoId = entry.photoId;
   });
-  if (removed.photoId) await deletePhoto(removed.photoId);
-  return json(state);
+  if (removed.photoId) await deletePhoto(personId, removed.photoId);
+  return json(await getState(personId));
 });

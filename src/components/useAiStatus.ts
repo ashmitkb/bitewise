@@ -13,6 +13,7 @@ function fetchStatus(): Promise<AiStatus> {
     textModel: null,
     visionModel: null,
     lanUrls: [],
+    tailscaleUrls: [],
   }));
 }
 
