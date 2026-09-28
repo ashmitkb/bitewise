@@ -1,0 +1,347 @@
+@import "tailwindcss";
+
+/*
+ * Design tokens. Light values here, dark values in the media query below.
+ * Macro colors (protein/carbs/fat) are a colorblind-validated set, and each macro keeps
+ * its color everywhere in the app. Calories are always the brand green.
+ */
+:root {
+  color-scheme: light dark;
+
+  --page: #f4f4f1;
+  --surface: #ffffff;
+  --surface-2: #f0efeb;
+  --ink: #0b0b0b;
+  --ink-2: #52514e;
+  --muted: #6b6a65;
+  --line: #e4e3dd;
+  --line-strong: #c9c8bf;
+  --segment-on: #ffffff;
+
+  --brand: #16a34a;
+  --brand-strong: #15803d;
+  --on-brand: #ffffff;
+
+  --protein: #2a78d6;
+  --carbs: #eda100;
+  --fat: #e87ba4;
+  --weight: #4a3aa7;
+
+  --serious: #ec835a;
+  --critical: #d03b3b;
+  --good: #0ca30c;
+
+  --card-shadow: 0 1px 2px rgb(0 0 0 / 0.04), 0 6px 20px rgb(0 0 0 / 0.04);
+  accent-color: var(--brand-strong);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --page: #0d0d0d;
+    --surface: #1a1a19;
+    --surface-2: #252523;
+    --ink: #f7f7f5;
+    --ink-2: #c3c2b7;
+    --muted: #9b9a93;
+    --line: #2c2c2a;
+    --line-strong: #43433f;
+    --segment-on: #3d3d3a;
+
+    --brand: #22c55e;
+    --brand-strong: #22c55e;
+    --on-brand: #052e16;
+
+    --protein: #3987e5;
+    --carbs: #c98500;
+    --fat: #d55181;
+    --weight: #9085e9;
+
+    --card-shadow: none;
+  }
+}
+
+@theme inline {
+  --color-page: var(--page);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-muted: var(--muted);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-brand: var(--brand);
+  --color-brand-strong: var(--brand-strong);
+  --color-on-brand: var(--on-brand);
+  --color-protein: var(--protein);
+  --color-carbs: var(--carbs);
+  --color-fat: var(--fat);
+  --color-weight: var(--weight);
+  --color-serious: var(--serious);
+  --color-critical: var(--critical);
+  --color-good: var(--good);
+  --font-sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --shadow-card: var(--card-shadow);
+}
+
+@layer base {
+  html {
+    background: var(--page);
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--page);
+    color: var(--ink);
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Lock page scroll while a modal sheet is open */
+  html:has(dialog[open]) {
+    overflow: hidden;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--brand-strong);
+    outline-offset: 2px;
+  }
+
+  /* 16px minimum stops iOS from zooming into fields */
+  input,
+  select,
+  textarea {
+    font-size: 1rem;
+  }
+
+  ::placeholder {
+    color: var(--muted);
+    opacity: 1;
+  }
+}
+
+@layer components {
+  .tabular {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-radius: 20px;
+    box-shadow: var(--card-shadow);
+  }
+
+  .visually-hidden {
+    position: absolute;
+    clip-path: inset(50%);
+    overflow: hidden;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    border: 0;
+    white-space: nowrap;
+  }
+
+  /* ---- form controls */
+
+  .field {
+    display: block;
+    width: 100%;
+    min-height: 44px;
+    padding: 0.6rem 0.8rem;
+    border-radius: 12px;
+    border: 1px solid var(--line-strong);
+    background: var(--surface);
+    color: var(--ink);
+  }
+  .field:focus-visible {
+    outline: 2px solid var(--brand-strong);
+    outline-offset: 0;
+    border-color: transparent;
+  }
+  .field:user-invalid {
+    border-color: var(--critical);
+  }
+  textarea.field {
+    resize: vertical;
+    line-height: 1.45;
+  }
+  .label {
+    display: block;
+    margin-bottom: 0.3rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--ink-2);
+  }
+
+  /* ---- buttons */
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    min-height: 44px;
+    padding: 0 1.1rem;
+    border-radius: 999px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    white-space: nowrap;
+    transition:
+      background-color 0.15s,
+      opacity 0.15s;
+    cursor: pointer;
+  }
+  .btn:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
+  }
+  .btn-primary {
+    background: var(--brand-strong);
+    color: var(--on-brand);
+  }
+  .btn-primary:hover:not(:disabled) {
+    opacity: 0.92;
+  }
+  .btn-secondary {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .btn-secondary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--surface-2) 88%, var(--ink));
+  }
+  .btn-ghost {
+    color: var(--ink-2);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    background: var(--surface-2);
+  }
+  .btn-danger {
+    background: var(--critical);
+    color: #fff;
+  }
+  .icon-btn {
+    display: inline-grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 999px;
+    color: var(--ink-2);
+    cursor: pointer;
+  }
+  .icon-btn:hover:not(:disabled) {
+    background: var(--surface-2);
+    color: var(--ink);
+  }
+  .icon-btn:disabled {
+    opacity: 0.35;
+    cursor: not-allowed;
+  }
+
+  /* ---- segmented control built from real radio inputs */
+
+  .segmented {
+    display: flex;
+    padding: 3px;
+    gap: 2px;
+    border-radius: 999px;
+    background: var(--surface-2);
+  }
+  .segmented label {
+    flex: 1 1 0;
+    min-width: 0;
+    position: relative;
+    cursor: pointer;
+  }
+  .segmented input {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    cursor: pointer;
+  }
+  .segmented span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 38px;
+    padding: 0.25rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: var(--ink-2);
+    text-align: center;
+  }
+  .segmented input:checked + span {
+    background: var(--segment-on);
+    color: var(--ink);
+    font-weight: 600;
+    box-shadow: 0 1px 3px rgb(0 0 0 / 0.12);
+  }
+  .segmented input:focus-visible + span {
+    outline: 2px solid var(--brand-strong);
+    outline-offset: 1px;
+  }
+
+  /* ---- dialog: bottom sheet on phones, centered card on larger screens */
+
+  dialog.sheet {
+    margin: auto auto 0;
+    width: 100%;
+    max-width: 100%;
+    max-height: min(92dvh, 900px);
+    padding: 0;
+    border: 0;
+    border-radius: 22px 22px 0 0;
+    background: var(--surface);
+    color: var(--ink);
+    overscroll-behavior: contain;
+  }
+  dialog.sheet[open] {
+    display: flex;
+    flex-direction: column;
+    animation: sheet-in 0.22s ease-out;
+  }
+  dialog.sheet::backdrop {
+    background: rgb(0 0 0 / 0.45);
+    backdrop-filter: blur(2px);
+  }
+  @media (min-width: 640px) {
+    dialog.sheet {
+      margin: auto;
+      max-width: 560px;
+      border-radius: 22px;
+    }
+  }
+
+  .typing-dot {
+    animation: pulse-dot 1.2s infinite ease-in-out;
+  }
+}
+
+@keyframes sheet-in {
+  from {
+    transform: translateY(24px);
+    opacity: 0;
+  }
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 0.25;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
