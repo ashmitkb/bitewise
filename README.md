@@ -55,10 +55,15 @@ npm start
 
 ### On your phone
 
-1. Start the app on your computer (either command above).
+1. Start Ollama and the app on your computer (either command above).
 2. Connect your phone to the **same Wi-Fi**.
-3. Open **Settings → Use it on your phone** in the app and type one of the addresses shown (like `http://192.168.1.101:3000`) into your phone's browser.
-4. If it doesn't load, allow **Node.js** through Windows Firewall on *private* networks (Windows usually asks the first time).
+3. Open **Settings → Use it on your phone** in the app and type the address shown (like `http://192.168.1.16:3000`) into your phone's browser. Use "Add to Home screen" to get an app icon.
+4. If it doesn't load, allow **Node.js** through Windows Firewall (Windows usually asks the first time).
+
+The phone is only a screen: the AI runs on your computer's graphics card and your log is saved on the computer, so the phone and the computer always show the same data. The computer has to be on and awake.
+
+- **The address can change** when your router hands out a new one. Settings always shows the current one. If it changes while `npm run dev` is running, restart it.
+- **There's no login.** Anyone on the same Wi-Fi can open the app while it's running. That's fine at home, but stop it on shared networks such as college or café Wi-Fi.
 
 ## How the AI part works
 
